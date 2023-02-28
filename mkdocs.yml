@@ -1,0 +1,51 @@
+site_name: مستندات فنی نوآوران ابر آبی
+site_author: گروه فنی و توسعه نوآوران ابر آبی
+site_url: https://docs.bidev.ir
+
+repo_url: https://github.com/blue-innovators/noavaran-docs
+repo_name: noavaran-docs
+
+nav:
+  - index.md
+    
+theme:
+  name: material
+  language: fa
+#  features:
+#    - tabs
+  font:
+    text: vazir
+    code: Roboto Mono
+  palette:
+    scheme: default
+    primary: indigo
+    accent: pink
+
+extra_css:
+  - assets/styles.css
+
+markdown_extensions:
+#   - toc:
+#       permalink: "#"
+#   - smarty
+  - admonition
+#  - attr_list
+  - footnotes
+#   - codehilite
+#   - pymdownx.arithmatex
+#   - pymdownx.betterem:
+#       smart_enable: all
+#   - pymdownx.caret
+#   - pymdownx.critic
+#   - pymdownx.details
+#   - pymdownx.emoji:
+#       emoji_generator: !!python/name:pymdownx.emoji.to_svg
+#   - pymdownx.inlinehilite
+#   - pymdownx.magiclink
+#   - pymdownx.mark
+#   - pymdownx.smartsymbols
+  - pymdownx.superfences
+#   - pymdownx.tasklist:
+#       custom_checkbox: true
+#   - pymdownx.tilde
+#   - fontawesome_markdown
