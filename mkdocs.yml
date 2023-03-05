@@ -7,6 +7,9 @@ repo_name: noavaran-docs
 
 nav:
   - index.md
+  - راهنمای زیرساخت:
+    - infrastructure/setup-linux-server.md
+    - infrastructure/setup-apps.md
     
 theme:
   name: material
