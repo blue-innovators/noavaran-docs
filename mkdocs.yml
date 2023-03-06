@@ -4,6 +4,7 @@ site_url: https://docs.bidev.ir
 
 repo_url: https://github.com/blue-innovators/noavaran-docs
 repo_name: noavaran-docs
+edit_uri: edit/master/docs/
 
 nav:
   - index.md
@@ -14,13 +15,15 @@ nav:
 theme:
   name: material
   language: fa
-#  features:
-#    - tabs
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
   font:
     text: vazir
     code: Roboto Mono
   palette:
-    scheme: default
+    scheme: slate
     primary: indigo
     accent: pink
 
