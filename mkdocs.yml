@@ -7,7 +7,8 @@ repo_name: noavaran-docs
 edit_uri: edit/master/docs/
 
 nav:
-  - index.md
+  - خانه:
+    - index.md
   - راهنمای زیرساخت:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md

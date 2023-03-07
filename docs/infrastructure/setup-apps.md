@@ -10,6 +10,12 @@ git clone https://tfs.bidev.ir/DefaultCollection/Deployment/_git/deploy-docker
 cd deploy-docker
 ```
 
+## نکته جهت دسترسی کاربران دیگر به پروژه deploy
+درصورتی که کاربران دیگری هم به سرور جهت کار با پروژه `deploy-docker` وارد میشوند، میتوانیم بعد از `clone` کردن پروژه، آنرا در یک مسیر دیگر که همه کاربران دسترسی داشته باشند قرار دهیم. بعنوان مثال `/app`:
+```sh
+sudo mv /deploy-docker /app
+```
+
 ## انجام تنظیمات
 جهت اجرای نرم افزارها ابتدا باید تغییراتی در تنظیمات ایجاد نمایید.
 
