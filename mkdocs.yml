@@ -12,7 +12,7 @@ nav:
   - راهنمای زیرساخت:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
-  -نوتیفیکیشن:
+  - نوتیفیکیشن:
     - notification/commands/notification-commands.md
     
 theme:
