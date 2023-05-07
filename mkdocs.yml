@@ -12,10 +12,13 @@ nav:
   - راهنمای زیرساخت:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
-  - نوتیفیکیشن:
-    - notification/index.md
-    - notification/notification-commands.md
-    - notification/notification-apis.md
+  - راهنمای Common:
+    - سیستم Notification:
+      - notification/index.md
+      - notification/notification-commands.md
+      - notification/notification-apis.md
+    - سیستم Payment:
+      - payment/commands/payment-commands.md
     
 theme:
   name: material
