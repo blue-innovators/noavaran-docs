@@ -25,9 +25,9 @@
 ```
 public enum MessageProvider : short
 {
-        Null = 0,
-        NegarSmsUrl = 11,
-        NegarSmsSoap = 12,
+    Null = 0,
+    NegarSmsUrl = 11,
+    NegarSmsSoap = 12,
 }
 ```
 
