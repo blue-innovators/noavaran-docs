@@ -13,12 +13,12 @@ nav:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
   - راهنمای Common:
+    - common-index.md
     - سیستم Notification:
-      - notification/index.md
       - notification/notification-commands.md
       - notification/notification-apis.md
     - سیستم Payment:
-      - payment/commands/payment-commands.md
+      - payment/payment-commands.md
     
 theme:
   name: material
