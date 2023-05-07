@@ -1,6 +1,6 @@
 # command های سیستم پرداخت
 
-command ها به شرح زیر می باشد:
+command ها به شرح زیر می باشند:
 
 ## خرید غذا (CreateOrderPaymentCommand)
 
@@ -297,7 +297,7 @@ public class CreatePaymentCommandResponse : PaymentCommandResponse
 
 PaymentId: شناسه عددی پرداخت  
 PaymentGuid: شناسه یکتای پرداخت  
-RedirectUrl: آدرسی که برای پرداخت آنلاین باید به آن ریدایرکت کرد  
+RedirectUrl: آدرسی که برای پرداخت آنلاین باید به آن ریدایرکت کرد
 
 نمونه درخواست:
 
@@ -338,9 +338,9 @@ var response = await _messagingClient.Request<CreatePaymentCommand, CreatePaymen
 
 ## پرداخت رزرو (ReservationPaymentCommand)
 
-این command برای پیش پرداخت یک رزرو استفاده می شود و مبلغ را از حساب مشتری به حساب رزرو شعبه انتقال می دهد که به شرح زیر است:  
+این command برای پیش پرداخت یک رزرو استفاده می شود و مبلغ را از حساب مشتری به حساب رزرو شعبه انتقال می دهد که به شرح زیر است:
 
-ورودی:  
+ورودی:
 
 ```cs
 public class ReservationPaymentCommand : IRequestMessage<CreatePaymentCommandResponse>
@@ -369,9 +369,9 @@ ReservationGuid: شناسه یکتای رزرو
 Amount: مبلغ  
 UseWalletCredit: این پارامتر مشخص می کند که آیا از موجودی حساب کاربر استفاده بشود یا نه  
 MetaData: متا دیتا که میتواند با توجه به نیاز لیستی را در آن ذخیره کرد  
-CallbackUrl: آدرسی که بعد از پرداخت به آن ریدایرکت می شود  
+CallbackUrl: آدرسی که بعد از پرداخت به آن ریدایرکت می شود
 
-خروجی:  
+خروجی:
 
 ```cs
 public class CreatePaymentCommandResponse : PaymentCommandResponse
@@ -384,9 +384,9 @@ public class CreatePaymentCommandResponse : PaymentCommandResponse
 
 PaymentId: شناسه عددی پرداخت  
 PaymentGuid: شناسه یکتای پرداخت  
-RedirectUrl: آدرسی که برای پرداخت آنلاین باید به آن ریدایرکت کرد  
+RedirectUrl: آدرسی که برای پرداخت آنلاین باید به آن ریدایرکت کرد
 
-نمونه درخواست:  
+نمونه درخواست:
 
 ```cs
 var response = await _messagingClient.Request<ReservationPaymentCommand, CreatePaymentCommandResponse>(
@@ -411,9 +411,9 @@ var response = await _messagingClient.Request<ReservationPaymentCommand, CreateP
 
 ## پذیرش رزرو (ReservationAcceptPaymentCommand)
 
-این command بعد از پذیرش رزرو صدا زده می شود و میزان سود ها را حساب کرده و به حساب های مخصوص آن ها و سهم شعبه را به حساب اصلی شعبه انتقال می دهد که به شرح زیر است:  
+این command بعد از پذیرش رزرو صدا زده می شود و میزان سود ها را حساب کرده و به حساب های مخصوص آن ها و سهم شعبه را به حساب اصلی شعبه انتقال می دهد که به شرح زیر است:
 
-ورودی:  
+ورودی:
 
 ```cs
 public class ReservationAcceptPaymentCommand : IRequestMessage<PaymentCommandResponse>
@@ -432,9 +432,9 @@ UserName: نام کاربری
 BranchGuid: شناسه یکتای شعبه  
 CustomerGuid: شناسه یکتای مشتری  
 ReservationGuid: شناسه یکتای رزرو  
-PrepaymentAmount: مبلغ پیش پرداخت  
+PrepaymentAmount: مبلغ پیش پرداخت
 
-خروجی:  
+خروجی:
 
 ```cs
 public class PaymentCommandResponse : IResponseMessage
@@ -442,13 +442,14 @@ public class PaymentCommandResponse : IResponseMessage
     public string Error { get; set; }
 }
 ```
-Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
-در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده  
 
-نمونه درخواست:  
+Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
+در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده
+
+نمونه درخواست:
 
 ```cs
-var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, PaymentCommandResponse>( 
+var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, PaymentCommandResponse>(
     new ReservationAcceptPaymentCommand
         {
             UserGuid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
@@ -460,12 +461,12 @@ var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, P
         });
 ```
 
-## کنسل کردن رزرو (ReservationCancelPaymentCommand)
+## لغو رزرو (ReservationCancelPaymentCommand)
 
-این command برای کنسل کردن رزرو استفاده می شود 
+این command برای کنسل کردن رزرو استفاده می شود
 این دستور جریمه کنسلی و سودهای مربوطه را محاسبه کرده و از حساب رزرو شعبه به حساب های مربوطه انتقال می دهد و مابقی پول مشتری را به حساب مشتری باز می گرداند که به شرح زیر می باشد:
 
-ورودی:  
+ورودی:
 
 ```cs
 public class ReservationCancelPaymentCommand : IRequestMessage<PaymentCommandResponse>
@@ -486,9 +487,9 @@ BranchGuid: شناسه یکتای شعبه
 CustomerGuid: شناسه یکتای مشتری  
 ReservationGuid: شناسه یکتای رزرو  
 PrepaymentAmount: مبلغ پیش پرداخت  
-PenaltyAmount: مبلغ جریمه  
+PenaltyAmount: مبلغ جریمه
 
-خروجی:  
+خروجی:
 
 ```cs
 public class PaymentCommandResponse : IResponseMessage
@@ -496,13 +497,14 @@ public class PaymentCommandResponse : IResponseMessage
     public string Error { get; set; }
 }
 ```
-Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
-در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده  
 
-نمونه درخواست:  
+Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
+در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده
+
+نمونه درخواست:
 
 ```cs
-var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, PaymentCommandResponse>( 
+var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, PaymentCommandResponse>(
     new ReservationAcceptPaymentCommand
         {
             UserGuid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
@@ -516,9 +518,10 @@ var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, P
 ```
 
 ## تسویه پرداخت (SettlePaymentCommand)
-این command برای تسویه یک پرداخت که شامل پرداخت آنلاین بوده استفاده می شود و پس از رفتن به درگاه بانکی و انجام شدن عملیات بانکی باید صدا زده شود که به شرح زیر می باشد:  
 
-ورودی:  
+این command برای تسویه یک پرداخت که شامل پرداخت آنلاین بوده استفاده می شود و پس از رفتن به درگاه بانکی و انجام شدن عملیات بانکی باید صدا زده شود که به شرح زیر می باشد:
+
+ورودی:
 
 ```cs
 public class SettlePaymentCommand : IRequestMessage<PaymentCommandResponse>
@@ -531,9 +534,9 @@ public class SettlePaymentCommand : IRequestMessage<PaymentCommandResponse>
 
 Guid: شناسه پرداخت  
 BankAuthority: این فیل یک شناسه یکتا می باشد که بعد از پرداخت در درگاه بانکی بانک بر می گرداند  
-BankStatus: این فیلد وضعیت پرداخت بانکی می باشد که از بانک بر میگردد  
+BankStatus: این فیلد وضعیت پرداخت بانکی می باشد که از بانک بر میگردد
 
-خروجی:  
+خروجی:
 
 ```cs
 public class PaymentCommandResponse : IResponseMessage
@@ -541,13 +544,14 @@ public class PaymentCommandResponse : IResponseMessage
     public string Error { get; set; }
 }
 ```
-Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
-در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده  
 
-نمونه درخواست:  
+Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
+در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده
+
+نمونه درخواست:
 
 ```cs
-var response = await _messagingClient.Request<SettlePaymentCommand, PaymentCommandResponse>( 
+var response = await _messagingClient.Request<SettlePaymentCommand, PaymentCommandResponse>(
     new ReservationAcceptPaymentCommand
         {
             Guid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
@@ -555,3 +559,61 @@ var response = await _messagingClient.Request<SettlePaymentCommand, PaymentComma
             BankStatus = "OK"
         });
 ```
+
+## لغو دستور پرداخت (RejectPaymentCommand)
+
+این command برای لغو دستور پرداخت استفاده می شود و تمام اجزای یک دستور پرداخت (تراکنش ها ، واریز آنلاین ها ) و خود دستور پرداخت را منقضی می نماید که به شرح زیر می باشد:
+
+ورودی:
+
+```cs
+public class RejectPaymentCommand : ICommandMessage
+{
+    public Guid ReferenceId { get; set; }
+    public string ReferenceType { get; set; }
+}
+```
+
+ReferenceId: شناسه موجودیت  
+ReferenceType: نوع موجودیت
+
+این command خروجی ندارد
+
+نمونه درخواست:
+
+```cs
+await _messagingClient.Send(
+    new RejectPaymentCommand
+        {
+         ReferenceId = new Guid("1f41a9c5-57b3-4712-89c4-f90eae422f19"),
+         ReferenceType = "Branch"
+        });
+```
+
+## لغو واریز آنلاین (RejectOnlineDepositCommand)
+
+این command برای منقضی کردن یک واریز آنلاین به کار می رود و به شرح زیر می باشد:
+
+ورودی:
+
+```cs
+public class RejectOnlineDepositCommand : ICommandMessage
+{
+    public Guid Guid { get; set; }
+}
+```
+
+Guid: شناسه یکتای واریز آنلاین
+
+این command خروجی ندارد
+
+نمونه درخواست:
+
+```cs
+await _messagingClient.Send(
+    new RejectOnlineDepositCommand
+        {
+         Guid = new Guid("1f41a9c5-57b3-4712-89c4-f90eae422f19"),
+        });
+```
+
