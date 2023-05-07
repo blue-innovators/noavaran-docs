@@ -14,6 +14,9 @@ nav:
     - infrastructure/setup-apps.md
   - سیستم پرداخت:
     - payment/commands/payment-commands.md
+  - سیستم رستورا:
+    - restora/commands/restora-commands.md
+    
     
     
 theme:
