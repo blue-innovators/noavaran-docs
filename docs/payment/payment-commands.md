@@ -74,11 +74,11 @@ var response = await _messagingClient.Request<CreateOrderPaymentCommand, CreateP
         CashAmount = 80000,
         UseWalletCredit = true,
         CallbackUrl = "leon.ir/order",
-            MetaData = new List<MetaData>()
-            {
-                new MetaData { Name="label", Value="burger"},
-                new MetaData { Name="table", Value="m2"}
-            }
+        MetaData = new List<MetaData>()
+        {
+            new MetaData { Name = "label", Value = "burger"},
+            new MetaData { Name = "table", Value = "m2"}
+        }
     });
 ```
 
@@ -169,10 +169,10 @@ Balance: موجودی
 ```cs
 var response = await _messagingClient.Request<GetWalletBalanceCommand, GetWalletBalanceCommandResponse>(
     new GetWalletBalanceCommand
-        {
-            ReferenceId = new Guid("68700794-F63B-46CA-B10B-D4B54C6081F8"),
-            ReferenceType = "Branch"
-        });
+    {
+        ReferenceId = new Guid("68700794-F63B-46CA-B10B-D4B54C6081F8"),
+        ReferenceType = "Branch"
+    });
 ```
 
 ## شارژ کیف پول کاربر (UserWalletChargeCommand)
@@ -222,14 +222,14 @@ Error: اگر خطایی وجود داشته باشد در این فیلد بر�
 ```cs
 var response = await _messagingClient.Request<UserWalletChargeCommand, UserWalletChargeCommandResponse>(
     new UserWalletChargeCommand
-        {
-            UserId=15,
-            UserGuid=new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
-            UserName="mohsen",
-            Guid=new Guid("15700794-F63B-46CA-B10B-D4B54C6025c3"),
-            Amount=50000,
-            CallbackUrl="marketplace.ir/wallet"
-        });
+    {
+        UserId = 15,
+        UserGuid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
+        UserName = "mohsen",
+        Guid = new Guid("15700794-F63B-46CA-B10B-D4B54C6025c3"),
+        Amount = 50000,
+        CallbackUrl = "marketplace.ir/wallet"
+    });
 ```
 
 ## ایجاد دستور پرداخت (CreatePaymentCommand)
@@ -304,34 +304,34 @@ RedirectUrl: آدرسی که برای پرداخت آنلاین باید به آ
 ```cs
 var response = await _messagingClient.Request<CreatePaymentCommand, CreatePaymentCommandResponse>(
     new CreatePaymentCommand
+    {
+        Guid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
+        UserId = 11,
+        UserName = "ali",
+        ReferenceId = reserve.Guid,
+        ReferenceType = nameof(Reservation),
+        Amount = 100000,
+        UseWalletCredit = true,
+        SourceWallet = new WalletReference
         {
-            Guid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
-            UserId = 11,
-            UserName = "ali",
-            ReferenceId = reserve.Guid,
-            ReferenceType = nameof(Reservation),
-            Amount = 100000,
-            UseWalletCredit = true,
-            SourceWallet = new WalletReference
-                {
-                    ReferenceId = customer.Id,
-                    ReferenceType nameof(User),
-                    ReferenceWalletType = ReferenceWalletType.CustomerMain
-                },
-            DestinationWallets = new Common.Messaging.Messages.Payment.PaymentDtos.TransactionWalletAmount[]
-                {
-                    new Common.Messaging.Messages.Payment.PaymentDtos.TransactionWalletAmount
-                    {
-                        ReferenceId= ReservationAcceptPaymentCommand.Branch.Guid,
-                        ReferenceType = nameof(Branch),
-                        ReferenceWalletType = ReferenceWalletType.BranchReservation,
-                        Amount = 100000
-                    }
-                },
-            CallbackUrl = "https://restora.keepapp.ir/api/payment/callback",
-            Metadata = new MetaData[]
-                {
-                    new MetaData{Name="meta name",Value="meta value"}
-                }
-        });
+            ReferenceId = customer.Id,
+            ReferenceType = nameof(User),
+            ReferenceWalletType = ReferenceWalletType.CustomerMain
+        },
+        DestinationWallets = new Common.Messaging.Messages.Payment.PaymentDtos.TransactionWalletAmount[]
+        {
+            new Common.Messaging.Messages.Payment.PaymentDtos.TransactionWalletAmount
+            {
+                ReferenceId = ReservationAcceptPaymentCommand.Branch.Guid,
+                ReferenceType = nameof(Branch),
+                ReferenceWalletType = ReferenceWalletType.BranchReservation,
+                Amount = 100000
+            }
+        },
+        CallbackUrl = "https://restora.keepapp.ir/api/payment/callback",
+        Metadata = new MetaData[]
+        {
+            new MetaData{Name="meta name",Value="meta value"}
+        }
+    });
 ```
