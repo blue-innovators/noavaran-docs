@@ -13,8 +13,9 @@ nav:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
   - نوتیفیکیشن:
-    - notification/commands/notification-commands.md
-    - notification/apis/notification-apis.md
+    - notification/index.md
+    - notification/notification-commands.md
+    - notification/notification-apis.md
     
 theme:
   name: material
