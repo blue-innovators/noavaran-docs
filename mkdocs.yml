@@ -14,6 +14,7 @@ nav:
     - infrastructure/setup-apps.md
   - نوتیفیکیشن:
     - notification/commands/notification-commands.md
+    - notification/apis/notification-apis.md
     
 theme:
   name: material
