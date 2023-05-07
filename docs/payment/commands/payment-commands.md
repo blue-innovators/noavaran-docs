@@ -263,7 +263,7 @@ ReferenceType: نوع موجودیت
 Amount: مبلغ  
 UseWalletCredit: این پارامتر مشخص می کند که آیا از موجودی حساب کاربر استفاده بشود یا نه  
 CallbackUrl: آدرسی که بعد از پرداخت به آن ریدایرکت می شود  
-MetaData: متا دیتا که میتواند با توجه به نیاز لیستی را در آ ذخیره کرد  
+MetaData: متا دیتا که میتواند با توجه به نیاز لیستی را در آن ذخیره کرد  
 SourceWallet: کیف پول مبدا که از نوع زیر می باشد:
 
 ```cs
@@ -333,5 +333,225 @@ var response = await _messagingClient.Request<CreatePaymentCommand, CreatePaymen
                 {
                     new MetaData{Name="meta name",Value="meta value"}
                 }
+        });
+```
+
+## پرداخت رزرو (ReservationPaymentCommand)
+
+این command برای پیش پرداخت یک رزرو استفاده می شود و مبلغ را از حساب مشتری به حساب رزرو شعبه انتقال می دهد که به شرح زیر است:  
+
+ورودی:  
+
+```cs
+public class ReservationPaymentCommand : IRequestMessage<CreatePaymentCommandResponse>
+{
+    public string Name { get; set; }
+    public Guid UserGuid { get; set; }
+    public string UserName { get; set; }
+    public Guid CustomerUserGuid { get; set; }
+    public Guid BusinessGuid { get; set; }
+    public Guid BranchGuid { get; set; }
+    public Guid ReservationGuid { get; set; }
+    public long Amount { get; set; }
+    public bool UseWalletCredit { get; set; }
+    public IEnumerable<MetaData> MetaData { get; set; }
+    public string CallbackUrl { get; set; }
+}
+```
+
+Name: نام  
+UserGuid: شناسه یکتای کاربر  
+UserName: نام کاربری  
+CustomerUserGuid: شناسه یکتای مشتری  
+BusinessGuid: شناسه یکتای کسب و کار  
+BranchGuid: شناسه یکتای شعبه  
+ReservationGuid: شناسه یکتای رزرو  
+Amount: مبلغ  
+UseWalletCredit: این پارامتر مشخص می کند که آیا از موجودی حساب کاربر استفاده بشود یا نه  
+MetaData: متا دیتا که میتواند با توجه به نیاز لیستی را در آن ذخیره کرد  
+CallbackUrl: آدرسی که بعد از پرداخت به آن ریدایرکت می شود  
+
+خروجی:  
+
+```cs
+public class CreatePaymentCommandResponse : PaymentCommandResponse
+{
+    public long PaymentId { get; set; }
+    public Guid PaymentGuid { get; set; }
+    public string RedirectUrl { get; set; }
+}
+```
+
+PaymentId: شناسه عددی پرداخت  
+PaymentGuid: شناسه یکتای پرداخت  
+RedirectUrl: آدرسی که برای پرداخت آنلاین باید به آن ریدایرکت کرد  
+
+نمونه درخواست:  
+
+```cs
+var response = await _messagingClient.Request<ReservationPaymentCommand, CreatePaymentCommandResponse>(
+    new ReservationPaymentCommand
+        {
+            Name = "reserve sample"
+            UserGuid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
+            UserName = "ali",
+            CustomerUserGuid = new Guid("36700794-F63B-46CA-B10B-D4B54C6082G6"),
+            BusinessGuid = new Guid("12700794-F63B-46CA-B10B-D4B54C6081B5"),
+            BranchGuid = new Guid("74700794-F63B-46CA-B10B-D4B54C6083A6"),
+            ReservationGuid = new Guid("85400794-F63B-46CA-B10B-D4B54C6084C1"),
+            Amount = 100000,
+            UseWalletCredit = true,
+            CallbackUrl = "https://restora.keepapp.ir/api/payment/callback",
+            Metadata = new MetaData[]
+                {
+                    new MetaData{Name="meta name",Value="meta value"}
+                }
+        });
+```
+
+## پذیرش رزرو (ReservationAcceptPaymentCommand)
+
+این command بعد از پذیرش رزرو صدا زده می شود و میزان سود ها را حساب کرده و به حساب های مخصوص آن ها و سهم شعبه را به حساب اصلی شعبه انتقال می دهد که به شرح زیر است:  
+
+ورودی:  
+
+```cs
+public class ReservationAcceptPaymentCommand : IRequestMessage<PaymentCommandResponse>
+{
+    public Guid UserGuid { get; set; }
+    public string UserName { get; set; }
+    public Guid BranchGuid { get; set; }
+    public Guid CustomerGuid { get; set; }
+    public Guid ReservationGuid { get; set; }
+    public long PrepaymentAmount { get; set; }
+}
+```
+
+UserGuid: شناسه یکتای کاربر  
+UserName: نام کاربری  
+BranchGuid: شناسه یکتای شعبه  
+CustomerGuid: شناسه یکتای مشتری  
+ReservationGuid: شناسه یکتای رزرو  
+PrepaymentAmount: مبلغ پیش پرداخت  
+
+خروجی:  
+
+```cs
+public class PaymentCommandResponse : IResponseMessage
+{
+    public string Error { get; set; }
+}
+```
+Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
+در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده  
+
+نمونه درخواست:  
+
+```cs
+var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, PaymentCommandResponse>( 
+    new ReservationAcceptPaymentCommand
+        {
+            UserGuid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
+            UserName = "ali",
+            BranchGuid = new Guid("74700794-F63B-46CA-B10B-D4B54C6083A6"),
+            CustomerGuid = new Guid("36700794-F63B-46CA-B10B-D4B54C6082G6"),
+            ReservationGuid = new Guid("85400794-F63B-46CA-B10B-D4B54C6084C1"),
+            PrepaymentAmount = 120000,
+        });
+```
+
+## کنسل کردن رزرو (ReservationCancelPaymentCommand)
+
+این command برای کنسل کردن رزرو استفاده می شود 
+این دستور جریمه کنسلی و سودهای مربوطه را محاسبه کرده و از حساب رزرو شعبه به حساب های مربوطه انتقال می دهد و مابقی پول مشتری را به حساب مشتری باز می گرداند که به شرح زیر می باشد:
+
+ورودی:  
+
+```cs
+public class ReservationCancelPaymentCommand : IRequestMessage<PaymentCommandResponse>
+{
+    public Guid UserGuid { get; set; }
+    public string UserName { get; set; }
+    public Guid BranchGuid { get; set; }
+    public Guid CustomerGuid { get; set; }
+    public Guid ReservationGuid { get; set; }
+    public long PrepaymentAmount { get; set; }
+    public long PenaltyAmount { get; set; }
+}
+```
+
+UserGuid: شناسه یکتای کاربر  
+UserName: نام کاربری  
+BranchGuid: شناسه یکتای شعبه  
+CustomerGuid: شناسه یکتای مشتری  
+ReservationGuid: شناسه یکتای رزرو  
+PrepaymentAmount: مبلغ پیش پرداخت  
+PenaltyAmount: مبلغ جریمه  
+
+خروجی:  
+
+```cs
+public class PaymentCommandResponse : IResponseMessage
+{
+    public string Error { get; set; }
+}
+```
+Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
+در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده  
+
+نمونه درخواست:  
+
+```cs
+var response = await _messagingClient.Request<ReservationAcceptPaymentCommand, PaymentCommandResponse>( 
+    new ReservationAcceptPaymentCommand
+        {
+            UserGuid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
+            UserName = "ali",
+            BranchGuid = new Guid("74700794-F63B-46CA-B10B-D4B54C6083A6"),
+            CustomerGuid = new Guid("36700794-F63B-46CA-B10B-D4B54C6082G6"),
+            ReservationGuid = new Guid("85400794-F63B-46CA-B10B-D4B54C6084C1"),
+            PrepaymentAmount = 120000,
+            PenaltyAmount = 2400
+        });
+```
+
+## تسویه پرداخت (SettlePaymentCommand)
+این command برای تسویه یک پرداخت که شامل پرداخت آنلاین بوده استفاده می شود و پس از رفتن به درگاه بانکی و انجام شدن عملیات بانکی باید صدا زده شود که به شرح زیر می باشد:  
+
+ورودی:  
+
+```cs
+public class SettlePaymentCommand : IRequestMessage<PaymentCommandResponse>
+{
+    public Guid Guid { get; set; }
+    public string BankAuthority { get; set; }
+    public string BankStatus { get; set; }
+}
+```
+
+Guid: شناسه پرداخت  
+BankAuthority: این فیل یک شناسه یکتا می باشد که بعد از پرداخت در درگاه بانکی بانک بر می گرداند  
+BankStatus: این فیلد وضعیت پرداخت بانکی می باشد که از بانک بر میگردد  
+
+خروجی:  
+
+```cs
+public class PaymentCommandResponse : IResponseMessage
+{
+    public string Error { get; set; }
+}
+```
+Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
+در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده  
+
+نمونه درخواست:  
+
+```cs
+var response = await _messagingClient.Request<SettlePaymentCommand, PaymentCommandResponse>( 
+    new ReservationAcceptPaymentCommand
+        {
+            Guid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
+            BankAuthority = "1f41a9c5-57b3-4712-89c4-f90eae422f19",
+            BankStatus = "OK"
         });
 ```
