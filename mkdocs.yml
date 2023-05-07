@@ -12,6 +12,9 @@ nav:
   - راهنمای زیرساخت:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
+  - سیستم پرداخت:
+    - payment/commands/payment-commands.md
+    
     
 theme:
   name: material
