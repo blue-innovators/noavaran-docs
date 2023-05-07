@@ -71,3 +71,15 @@ Docker Compose version v2.16.0
 
 در زمان نگارش این مقاله آخرین نسخه docker-compose برابر v2.16.0 میباشد.
 جهت نصب آخرین نسخه میتوانید به صفحه [compose releases in github](https://github.com/docker/compose/releases) رجوع کنید و شماره نسخه مورد نظر خود را در لینک بالا جایگذاری نمایید.
+
+## رفع مشکل اشتباه بودن Primary Group برای کاربران Active Directory
+```sh
+$ id
+uid=[user] gid=[invalid-group] groups=xxx(domain users@domain.local),[other-groups]
+
+# fix
+$ sudo realm permit -g "domain users@domain.local" $USER
+
+$ id
+uid=[user] gid=xxx(domain users@domain.local) groups=[other-groups]
+```
