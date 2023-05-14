@@ -13,10 +13,9 @@ nav:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
   - سیستم پرداخت:
-    - payment/commands/payment-commands.md
+    - payment/payment-commands.md
   - سیستم رستورا:
-    - restora/commands/restora-commands.md
-    
+    - restora/restora-commands.md
     
     
 theme:

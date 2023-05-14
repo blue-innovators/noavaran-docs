@@ -1,11 +1,11 @@
-# نصب سرور لینوکس
+# نصب داکر روی سرور لینوکس
 در این راهنما نحوه راه اندازی یک سرور لینوکس که بتواند نرم افزارها را اجرا نماید توضیح داده شده است:
 
 ## آماده سازی سیستم عامل
 قبل از هر چیز باید سیستم عامل را آماده نماییم:
 
 ```
-sudo apt update && sudo apt upgrade
+sudo apt update
 ```
 
 ## نصب docker
@@ -37,8 +37,8 @@ sudo groupadd docker
 sudo usermod -aG docker $USER
 
 # logout and login again
+# ...
 
-newgrp docker
 docker images
 ```
 

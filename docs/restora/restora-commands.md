@@ -66,11 +66,11 @@ Tables: نام میز رزرو
 ```cs
 var response = await _messagingClient.Request<GetActiveCustomerReservationsCommand, GetActiveCustomerReservationsCommandResponse>(
     new GetActiveCustomerReservationsCommand
-        {
-            CustomerGuid = new Guid("68700794-F63B-46CA-B10B-D4B54C6081F8"),
-            BranchGuid = new Guid("43620794-F63B-46CA-B10B-D4B54C6081B4"),
-            ReservationTime = DateTime.UtcNow
-        });
+    {
+        CustomerGuid = new Guid("68700794-F63B-46CA-B10B-D4B54C6081F8"),
+        BranchGuid = new Guid("43620794-F63B-46CA-B10B-D4B54C6081B4"),
+        ReservationTime = DateTime.UtcNow
+    });
 ```
 
 ## استفاده از پیش پرداخت یک رزرو (UseReservationPrepaymentCommand)
@@ -109,8 +109,8 @@ Error: اگر خطایی وجود داشته باشد در این فیلد بر�
 ```cs
 var response = await _messagingClient.Request<UseReservationPrepaymentCommand,  UseReservationPrepaymentCommandResponse>(
     new UseReservationPrepaymentCommand
-        {
-            CustomerGuid = new Guid("68700794-F63B-46CA-B10B-D4B54C6081F8"),
-            BranchGuid = new Guid("43620794-F63B-46CA-B10B-D4B54C6081B4"),
-        });
+    {
+        CustomerGuid = new Guid("68700794-F63B-46CA-B10B-D4B54C6081F8"),
+        BranchGuid = new Guid("43620794-F63B-46CA-B10B-D4B54C6081B4"),
+    });
 ```
