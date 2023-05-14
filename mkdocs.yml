@@ -14,6 +14,8 @@ nav:
     - infrastructure/setup-apps.md
   - سیستم پرداخت:
     - payment/payment-commands.md
+    - payment/restora-payment-commands.md
+    - payment/parsa-payment-commands.md
   - سیستم رستورا:
     - restora/restora-commands.md
     
