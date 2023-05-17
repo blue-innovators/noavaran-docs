@@ -12,13 +12,17 @@ nav:
   - راهنمای زیرساخت:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
-  - سیستم پرداخت:
-    - payment/payment-commands.md
-    - payment/restora-payment-commands.md
-    - payment/parsa-payment-commands.md
+  - راهنمای Common:
+    - common-index.md
+    - سیستم Notification:
+      - notification/notification-commands.md
+      - notification/notification-apis.md
+    - سیستم پرداخت:
+      - payment/payment-commands.md
+      - payment/restora-payment-commands.md
+      - payment/parsa-payment-commands.md
   - سیستم رستورا:
     - restora/restora-commands.md
-    
     
 theme:
   name: material
