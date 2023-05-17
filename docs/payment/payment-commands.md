@@ -1,56 +1,63 @@
 # کامندهای سیستم پرداخت
 
-command ها به شرح زیر می باشند:
+کامند های مربوط به پرداخت همگی در فضای نامی `AbrAbi.Common.Messaging.Messages.Payment` قابل دسترس میباشند:
 
-## ایجاد کیف پول (CreateWalletCommand)
+## ایجاد کیف پول (WalletCreateCommandV1)
 
-این command برای ایجاد یک کیف پول استفاده می شود . که در زمان ایجاد شعبه و کاربر جدید به صورت خودکار بعد از ثبت موجودیت فراخوانی میشود  
-همچنین این command دارای ریسپانس نمی باشد و ورودی آن به شرح زیر است:
+این کامند برای ایجاد یک کیف پول استفاده می شود . که در زمان ایجاد شعبه و کاربر جدید به صورت خودکار بعد از ثبت موجودیت فراخوانی میشود  
+همچنین این کامند دارای ریسپانس نمی باشد و ورودی آن به شرح زیر است:
 
 ```cs
-public class CreateWalletCommand : ICommandMessage
+public class WalletCreateCommandV1 : ICommandMessage
 {
     public Guid ReferenceId { get; set; }
     public string ReferenceType { get; set; }
     public string ReferenceWalletType { get; set; }
     public string ReferenceTitle { get; set; }
+    public string ReferenceAccountOwnerName { get; set; }
 }
 ```
 
 ReferenceId: شناسه موجودیت  
 ReferenceType: نوع موجودیت  
 ReferenceTitle: عنوان موجودیت  
-ReferenceWalletType: نوع کیف پول که این نوع ها سمت رایان پی تعریف شده است و در حال حاضر به شرح زیر است:
+ReferenceAccountOwnerName: عنوان نمایشی صاحب حساب در سیستم رایان پی
+ReferenceWalletType: نوع کیف پول که این نوع ها سمت رایان پی تعریف شده است و در حال حاضر به شرح زیر است:  
 
 ```cs
-public class ReferenceWalletType
+namespace AbrAbi.Common.Constants
 {
-	public const string BranchMain = "BranchMain";
-	public const string BranchReservation = "BranchReservation";
-	public const string CustomerMain = "CustomerMain";
+    public class ReferenceWalletType
+    {
+        public const string System = "System";
+        public const string BranchMain = "BranchMain";
+        public const string BranchReservation = "BranchReservation";
+        public const string CustomerMain = "CustomerMain";
+    }
 }
 ```
 
 نمونه درخواست:
 
 ```cs
-await _commonMessagingClient.Send(new Messaging.Messages.Payment.CreateWalletCommand
+await _commonMessagingClient.Send(new WalletCreateCommandV1
 {
     ReferenceId = 1004,
     ReferenceType = "Branch",
     ReferenceWalletType = ReferenceWalletType.BranchMain,
-    ReferenceTitle = "لئون شعبه الهیه"
+    ReferenceTitle = $"شعبه-اصلی-لئون-الهیه",
+    ReferenceAccountOwnerName = $"شعبه-لئون-الهیه"
 });
 ```
 
-## موجودی کیف پول (GetWalletBalanceCommand)
+## موجودی کیف پول (WalletGetBalanceCommandV1)
 
-این command برای به دست آوردن موجودی کیف پول های یک شخص (کاربر،شعبه ...) استفاده می شود و به شرح زیر می باشد:
+این کامند برای بدست آوردن موجودی کیف پول های یک موجودیت (کاربر،شعبه، ...) استفاده می شود و به شرح زیر می باشد:
 
 ورودی:
 
 ```cs
-public class GetWalletBalanceCommand : IRequestMessage<GetWalletBalanceCommandResponse>
+public class WalletGetBalanceCommandV1 : IRequestMessage<WalletGetBalanceCommandResponseV1>
 {
     public Guid ReferenceId { get; set; }
     public string ReferenceType { get; set; }
@@ -63,7 +70,7 @@ ReferenceType: نوع موجودیت
 خروجی:
 
 ```cs
-public class GetWalletBalanceCommandResponse : IResponseMessage
+public class WalletGetBalanceCommandResponseV1 : IResponseMessage
 {
     public IEnumerable<WalletBalance> Balances { get; set; }
     public string Error { get; set; }
@@ -87,22 +94,22 @@ Balance: موجودی
 نمونه درخواست:
 
 ```cs
-var response = await _messagingClient.Request<GetWalletBalanceCommand, GetWalletBalanceCommandResponse>(
-    new GetWalletBalanceCommand
+var response = await _messagingClient.Request<WalletGetBalanceCommandV1, WalletGetBalanceCommandResponseV1>(
+    new WalletGetBalanceCommandV1
     {
         ReferenceId = new Guid("68700794-F63B-46CA-B10B-D4B54C6081F8"),
         ReferenceType = "Branch"
     });
 ```
 
-## شارژ کیف پول کاربر (UserWalletChargeCommand)
+## شارژ کیف پول کاربر (WalletUserChargeCommandV1)
 
-این command برای شارژ کیف پول یک کاربر استفاده می شود و به شرح زیر می باشد:
+این کامند برای شارژ کیف پول یک کاربر استفاده می شود و به شرح زیر می باشد:
 
 ورودی:
 
 ```cs
-public class UserWalletChargeCommand : IRequestMessage<UserWalletChargeCommandResponse>
+public class WalletUserChargeCommandV1 : IRequestMessage<WalletUserChargeCommandResponseV1>
 {
     public Guid? Guid { get; set; }
     public long UserId { get; set; }
@@ -123,7 +130,7 @@ CallbackUrl: آدرسی که بعد از پرداخت به آن ریدایرکت
 خروجی:
 
 ```cs
-public class UserWalletChargeCommandResponse : IResponseMessage
+public class WalletUserChargeCommandResponseV1 : IResponseMessage
 {
     public long OnlineDepositId { get; set; }
     public Guid OnlineDepositGuid { get; set; }
@@ -140,8 +147,8 @@ Error: اگر خطایی وجود داشته باشد در این فیلد بر�
 نمونه درخواست:
 
 ```cs
-var response = await _messagingClient.Request<UserWalletChargeCommand, UserWalletChargeCommandResponse>(
-    new UserWalletChargeCommand
+var response = await _messagingClient.Request<WalletUserChargeCommandV1, WalletUserChargeCommandResponseV1>(
+    new WalletUserChargeCommandV1
     {
         UserId = 15,
         UserGuid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
@@ -152,14 +159,114 @@ var response = await _messagingClient.Request<UserWalletChargeCommand, UserWalle
     });
 ```
 
-## ایجاد دستور پرداخت (CreatePaymentCommand)
+## تسویه پرداخت (PaymentSettleCommandV1)
 
-این command برای ایجاد یک دستور پرداخت استفاده می شود و به شرح زیر است:
+این کامند برای تسویه یک پرداخت که شامل پرداخت آنلاین بوده استفاده می شود و پس از رفتن به درگاه بانکی و انجام شدن عملیات بانکی باید صدا زده شود که به شرح زیر می باشد:
 
 ورودی:
 
 ```cs
-public class CreatePaymentCommand : IRequestMessage<CreatePaymentCommandResponse>
+public class PaymentSettleCommandV1 : IRequestMessage<ResponseMessageBase>
+{
+    public Guid Guid { get; set; }
+    public string BankAuthority { get; set; }
+    public string BankStatus { get; set; }
+}
+```
+
+Guid: شناسه پرداخت  
+BankAuthority: این فیل یک شناسه یکتا می باشد که بعد از پرداخت در درگاه بانکی بانک بر می گرداند  
+BankStatus: این فیلد وضعیت پرداخت بانکی می باشد که از بانک بر میگردد
+
+خروجی:
+
+```cs
+public class ResponseMessageBase : IResponseMessage
+{
+    public string Error { get; set; }
+}
+```
+
+Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
+در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده
+
+نمونه درخواست:
+
+```cs
+var response = await _messagingClient.Request<PaymentSettleCommandV1, ResponseMessageBase>(
+    new PaymentSettleCommandV1
+    {
+        Guid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
+        BankAuthority = "1f41a9c5-57b3-4712-89c4-f90eae422f19",
+        BankStatus = "OK"
+    });
+```
+
+## لغو دستور پرداخت (PaymentRejectCommandV1)
+
+این کامند برای لغو دستور پرداخت استفاده می شود و تمام اجزای یک دستور پرداخت (تراکنش ها ، واریز آنلاین ها ) و خود دستور پرداخت را منقضی می نماید که به شرح زیر می باشد:
+
+ورودی:
+
+```cs
+public class PaymentRejectCommandV1 : ICommandMessage
+{
+    public Guid ReferenceId { get; set; }
+    public string ReferenceType { get; set; }
+}
+```
+
+ReferenceId: شناسه موجودیت  
+ReferenceType: نوع موجودیت
+
+این کامند خروجی ندارد
+
+نمونه درخواست:
+
+```cs
+await _messagingClient.Send(new PaymentRejectCommandV1
+{
+    ReferenceId = new Guid("1f41a9c5-57b3-4712-89c4-f90eae422f19"),
+    ReferenceType = "Branch"
+});
+```
+
+## لغو واریز آنلاین (OnlineDepositRejectCommandV1)
+
+این کامند برای منقضی کردن یک واریز آنلاین به کار می رود و به شرح زیر می باشد:
+
+ورودی:
+
+```cs
+public class OnlineDepositRejectCommandV1 : ICommandMessage
+{
+    public Guid Guid { get; set; }
+}
+```
+
+Guid: شناسه یکتای واریز آنلاین
+
+این کامند خروجی ندارد
+
+نمونه درخواست:
+
+```cs
+await _messagingClient.Send(new OnlineDepositRejectCommandV1
+{
+    Guid = new Guid("1f41a9c5-57b3-4712-89c4-f90eae422f19"),
+});
+```
+
+
+
+## ایجاد دستور پرداخت (منقضی شده) (PaymentCreateCommandV1)
+
+این کامند برای ایجاد یک دستور پرداخت استفاده می شود و به شرح زیر است:
+
+ورودی:
+
+```cs
+public class PaymentCreateCommandV1 : IRequestMessage<PaymentCreateCommandResponseV1>
 {
     public Guid? Guid { get; set; }
     public long UserId { get; set; }
@@ -170,7 +277,7 @@ public class CreatePaymentCommand : IRequestMessage<CreatePaymentCommandResponse
     public bool UseWalletCredit { get; set; }
     public WalletReference SourceWallet { get; set; }
     public IEnumerable<TransactionWalletAmount> DestinationWallets { get; set; }
-    public IEnumerable<MetaData> MetaData { get; set; }
+    public IEnumerable<PaymentMetaDataV1> MetaData { get; set; }
     public string CallbackUrl { get; set; }
 }
 ```
@@ -207,11 +314,12 @@ public class TransactionWalletAmount : WalletReference
 خروجی:
 
 ```cs
-public class CreatePaymentCommandResponse : PaymentCommandResponse
+public class PaymentCreateCommandResponseV1 : IResponseMessage
 {
     public long PaymentId { get; set; }
     public Guid PaymentGuid { get; set; }
     public string RedirectUrl { get; set; }
+    public string Error { get; set; }
 }
 ```
 
@@ -222,8 +330,8 @@ RedirectUrl: آدرسی که برای پرداخت آنلاین باید به آ
 نمونه درخواست:
 
 ```cs
-var response = await _messagingClient.Request<CreatePaymentCommand, CreatePaymentCommandResponse>(
-    new CreatePaymentCommand
+var response = await _messagingClient.Request<PaymentCreateCommandV1, PaymentCreateCommandResponseV1>(
+    new PaymentCreateCommandV1
     {
         Guid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
         UserId = 11,
@@ -238,9 +346,9 @@ var response = await _messagingClient.Request<CreatePaymentCommand, CreatePaymen
             ReferenceType = nameof(User),
             ReferenceWalletType = ReferenceWalletType.CustomerMain
         },
-        DestinationWallets = new Common.Messaging.Messages.Payment.PaymentDtos.TransactionWalletAmount[]
+        DestinationWallets = new TransactionWalletAmount[]
         {
-            new Common.Messaging.Messages.Payment.PaymentDtos.TransactionWalletAmount
+            new TransactionWalletAmount
             {
                 ReferenceId = ReservationAcceptPaymentCommand.Branch.Guid,
                 ReferenceType = nameof(Branch),
@@ -249,107 +357,9 @@ var response = await _messagingClient.Request<CreatePaymentCommand, CreatePaymen
             }
         },
         CallbackUrl = "https://restora.keepapp.ir/api/payment/callback",
-        Metadata = new MetaData[]
+        Metadata = new PaymentMetaDataV1[]
         {
-            new MetaData { Name = "meta name", Value = "meta value" }
+            new PaymentMetaDataV1 { Name = "meta name", Value = "meta value" }
         }
     });
-```
-
-## تسویه پرداخت (SettlePaymentCommand)
-
-این command برای تسویه یک پرداخت که شامل پرداخت آنلاین بوده استفاده می شود و پس از رفتن به درگاه بانکی و انجام شدن عملیات بانکی باید صدا زده شود که به شرح زیر می باشد:
-
-ورودی:
-
-```cs
-public class SettlePaymentCommand : IRequestMessage<PaymentCommandResponse>
-{
-    public Guid Guid { get; set; }
-    public string BankAuthority { get; set; }
-    public string BankStatus { get; set; }
-}
-```
-
-Guid: شناسه پرداخت  
-BankAuthority: این فیل یک شناسه یکتا می باشد که بعد از پرداخت در درگاه بانکی بانک بر می گرداند  
-BankStatus: این فیلد وضعیت پرداخت بانکی می باشد که از بانک بر میگردد
-
-خروجی:
-
-```cs
-public class PaymentCommandResponse : IResponseMessage
-{
-    public string Error { get; set; }
-}
-```
-
-Error: اگر خطایی وجود داشته باشد در این فیلد برگرداننده می شود  
-در صورتی که خطایی بر نگردد یعنی عملیات با موفقیت انجام شده
-
-نمونه درخواست:
-
-```cs
-var response = await _messagingClient.Request<SettlePaymentCommand, PaymentCommandResponse>(
-    new ReservationAcceptPaymentCommand
-    {
-        Guid = new Guid("54700794-F63B-46CA-B10B-D4B54C6081F2"),
-        BankAuthority = "1f41a9c5-57b3-4712-89c4-f90eae422f19",
-        BankStatus = "OK"
-    });
-```
-
-## لغو دستور پرداخت (RejectPaymentCommand)
-
-این command برای لغو دستور پرداخت استفاده می شود و تمام اجزای یک دستور پرداخت (تراکنش ها ، واریز آنلاین ها ) و خود دستور پرداخت را منقضی می نماید که به شرح زیر می باشد:
-
-ورودی:
-
-```cs
-public class RejectPaymentCommand : ICommandMessage
-{
-    public Guid ReferenceId { get; set; }
-    public string ReferenceType { get; set; }
-}
-```
-
-ReferenceId: شناسه موجودیت  
-ReferenceType: نوع موجودیت
-
-این command خروجی ندارد
-
-نمونه درخواست:
-
-```cs
-await _messagingClient.Send(new RejectPaymentCommand
-{
-    ReferenceId = new Guid("1f41a9c5-57b3-4712-89c4-f90eae422f19"),
-    ReferenceType = "Branch"
-});
-```
-
-## لغو واریز آنلاین (RejectOnlineDepositCommand)
-
-این command برای منقضی کردن یک واریز آنلاین به کار می رود و به شرح زیر می باشد:
-
-ورودی:
-
-```cs
-public class RejectOnlineDepositCommand : ICommandMessage
-{
-    public Guid Guid { get; set; }
-}
-```
-
-Guid: شناسه یکتای واریز آنلاین
-
-این command خروجی ندارد
-
-نمونه درخواست:
-
-```cs
-await _messagingClient.Send(new RejectOnlineDepositCommand
-{
-    Guid = new Guid("1f41a9c5-57b3-4712-89c4-f90eae422f19"),
-});
 ```
