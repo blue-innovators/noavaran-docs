@@ -73,6 +73,8 @@ Docker Compose version v2.16.0
 جهت نصب آخرین نسخه میتوانید به صفحه [compose releases in github](https://github.com/docker/compose/releases) رجوع کنید و شماره نسخه مورد نظر خود را در لینک بالا جایگذاری نمایید.
 
 ## رفع مشکل اشتباه بودن Primary Group برای کاربران Active Directory
+قاعدتا این مشکل نباید پیش بیاد ولی اگر به هر دلیلی گروه اصلی یک کاربر active directory تغییر کرده بود
+و نیاز بود که به گروه پیشفرض کاربران active directory برگده از این دستور استفاده میکنیم:
 ```sh
 $ id
 uid=[user] gid=[invalid-group] groups=xxx(domain users@domain.local),[other-groups]
