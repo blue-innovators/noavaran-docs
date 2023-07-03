@@ -12,6 +12,8 @@ nav:
   - راهنمای زیرساخت:
     - infrastructure/setup-linux-server.md
     - infrastructure/setup-apps.md
+    - infrastructure/deployment-architecture.md
+    - infrastructure/continuous-integration.md
   - راهنمای Common:
     - common-index.md
     - سیستم Notification:
@@ -19,8 +21,8 @@ nav:
       - notification/notification-apis.md
     - سیستم پرداخت:
       - payment/payment-commands.md
-      - payment/restora-payment-commands.md
-      - payment/parsa-payment-commands.md
+      - payment/payment-commands-parsa.md
+      - payment/payment-commands-restora.md
   - سیستم رستورا:
     - restora/restora-commands.md
     
