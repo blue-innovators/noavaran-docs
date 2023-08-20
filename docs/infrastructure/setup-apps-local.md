@@ -73,11 +73,11 @@ docker login dcr.bidev.ir -u developer -p 123
 docker login dreg.bidev.ir -u developer -p 123
 ```
 
-### 🔹 5. ایجاد شبکه appnet
+### 🔹 5. ایجاد شبکه keepapp
 
-حال بایستی شبکه ای با نام appnet ایجاد کنیم زیرا که تمامی سرویس‌های ما بر روی این شبکه با یکدیگر در ارتباط خواهند بود. برای ایجاد این شبکه دستور زیر را در terminal اجرا نمایید:
+حال بایستی شبکه ای با نام keepapp ایجاد کنیم زیرا که تمامی سرویس‌های ما بر روی این شبکه با یکدیگر در ارتباط خواهند بود. برای ایجاد این شبکه دستور زیر را در terminal اجرا نمایید:
 ```
-docker network create appnet
+docker network create keepapp
 ```
 
 ### 🔹 6. ساخت فایل .env
@@ -128,7 +128,7 @@ sudo chmod 777 -R ./volumes/sqldata
 حال که mssql به صورت کامل راه اندازی شده است لازم است اسکریپت ساخت دیتابیس های سرویس های کامان را بر روی sql اجرا نماییم. این اسکریپت ها در پوشه migrations سورس کد گذاشته شده اند. برای اجرای این اسکریپت‌ها دستورات زیر را در powershell اجرا نمایید : 
 
 ```
-docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -i /migrations/Create-CommonDb.sql\'
+docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -i /migrations/Create-CommonDb.sql'
 
 docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -i /migrations/Create-LoggingDb.sql'
 
