@@ -26,6 +26,10 @@ nav:
       - payment/payment-commands-restora.md
   - سیستم رستورا:
     - restora/restora-commands.md
+  - R & D:
+    - research-and-developement/index.md
+    - Event Soucing:
+      - event-sourcing/introduction.md
     
 theme:
   name: material
