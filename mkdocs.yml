@@ -30,6 +30,17 @@ nav:
     - research-and-developement/index.md
     - Event Soucing:
       - event-sourcing/introduction.md
+      - event-sourcing/snapshots-limitations.md
+      - event-sourcing/competitive-advantage.md
+      - event-sourcing/event-sourced-aggregates.md
+      - event-sourcing/building-event-store.md
+      - event-sourcing/using-event-store.md
+      - event-sourcing/cqrs-and-es.md
+      - event-sourcing/benefits.md
+      - event-sourcing/costs.md
+      - event-sourcing/references.md
+      - event-sourcing/summary.md
+
     
 theme:
   name: material

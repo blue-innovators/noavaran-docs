@@ -1,0 +1,1 @@
+# سنجش معایب Event Sourcing

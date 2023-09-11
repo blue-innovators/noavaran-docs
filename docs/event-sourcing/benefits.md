@@ -1,0 +1,1 @@
+# بررسی مزایای Event Sourcing
