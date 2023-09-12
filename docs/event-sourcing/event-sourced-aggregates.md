@@ -9,7 +9,7 @@
 ## 🔸 ساختار
 
 <p style="text-align:justify;">
-زمانی که میخواهیم Aggregate هایی را در یک دامیت Event Sourced شده ایجاد کنیم چندین نکته کلیدی وجود دارد.
+زمانی که میخواهیم Aggregate هایی را در یک دامین Event Sourced شده ایجاد کنیم چندین نکته کلیدی وجود دارد.
 اولین نکته این است که آن Aggregate بتواند یک رویداد دامین را بر روی خودش با توجه به قوانین بیزینسی اعمال نماید.
 دومین نکته این است که بایستی یک لیست از رویدادهای uncommited بایستی بر روی Aggreagte نگهداری شوند که بتوانیم در نهایت آنها را در Event Store ذخیره نماییم.
 سومین نکته این است که هر Aggregate بایستی ورژن داشته باشد که بتوانیم از روی آن Snapshot بسازیم و از روی آن ها Aggreagte را بسازیم.
@@ -77,7 +77,7 @@ public class PayAsYouGoAccount : EventSourcedAggregate
 پیاده سازی متد Apply از دیتا تایپ dynamic کمک میگیرد که این امکان را ایجاد میکند که Handler های بسیار گویا داشته باشیم.
 این Handler ها همان متدهای When می باشند.
 هر متد When انتظار میرود که برای خواننده کد شفاف باشد که به چه تایپ رویدادی واکنش نشان میدهد.
-متد Apply همچنین ورزن Aggregate را آپدیت می نماید.این موضوع به ما کمک میکند که بفهمیم قبل از اینکه ادامه دهیم آیا عملیات مورد نظر اجرا شده است یا نه.
+متد Apply همچنین ورژن Aggregate را آپدیت می نماید. این موضوع به ما کمک میکند که بفهمیم قبل از اینکه ادامه دهیم آیا عملیات مورد نظر اجرا شده است یا نه.
 مقدار Version در Aggregate یک عدد ترتیبی است نسبت به ایتدای رشته رویدادهای آن Aggregate.
 </p>
 
@@ -163,11 +163,212 @@ CreditAdded
 
 ### 🔹 افزودن پشتیبانی از Snapshot ها
 
+<p style="text-align:justify;">
+آخرین موضوع باقیمانده قبل از آنکه سراغ موضوع Persistance برویم توانایی ساخت Snapshot ها می باشد.
+خود Aggregate ها بایستی Snapshot ها را بسازند. زیرا که این Aggregate است که کل منطق دامین که میتواند رویدادها را بازبخش نماید درون خود دارد. در همین راستا یک متد به منظور ساخت Snapshot و یک متد به منظور Restore کردن Aggregate از روی Snapshot اضافه میکنیم :
+</p>
+
+```csharp
+public class PayAsYouGoAccount : EventSourcedAggregate
+{
+	 private FreeCallAllowance _freeCallAllowance;
+	 private Money _credit;
+	 private PayAsYouGoInclusiveMinutesOffer _inclusiveMinutesOffer =
+	 new PayAsYouGoInclusiveMinutesOffer();
+	 ...
+	 // constructor overload - restore aggregate from snapshot
+	 public PayAsYouGoAccount(PayAsYouGoAccountSnapshot snapshot)
+	 {
+		 Version = snapshot.Version;
+		 _credit = new Money(snapshot.Credit);
+	 }
+	 public PayAsYouGoAccountSnapshot GetPayAsYouGoAccountSnapshot()
+	 {
+		 return new PayAsYouGoAccountSnapshot
+		 {
+		 Version = Version,
+		 Credit = _credit.Amount
+		 };
+	 }
+	 ...
+}
+```
+<p style="text-align:justify;">
+در مثال بالا overload متد constroctor مربوط به Aggregate یک Snapshot را در ورودی دریافت میکند و وضعیت Aggregate را با Snapshot یکی میکند.
+همانطور که عقب تر اشاره کردیم این یک میانبر به منظور افزایش پرفورمنس برنامه می باشد که معادل پازپخش تمامی رویدادهای قبل از ورژن آن Snapshot می باشد.
+برای اینکه این راهکار به درستی جلو برود لازم است که Snapshot تمامی اطلاعات مورد نیاز Aggregate را درون خود داشته باشد که در زمان ساخت بتوانند مورد استفاده قرار بگیرند.
+کلاس مربوط به Snapshot مثال بالا را ببینید :
+</p>
+
+```csharp
+public class PayAsYouGoAccountSnapshot
+{
+	 public int Version { get; set; }
+	 public decimal Credit { get; set; }
+}
+```
+
 ## 🔸 Persisting & Rehydrating
+
+<p style="text-align:justify;">
+Persist کردن Aggregate های بر پایه مکانیزم Event Sourcing به معنای ذخیره سازی رویدادهای Comitt نشده در Event Store می باشد.
+همچین لود کردن Aggregate که به آن Rehydrating نیز گفته میشود که در طی اینکار بایستی تمامی رویدادهای قبلی را restore کرده و بازپخش کنید.
+البته که اینکار بایستی این امکان را داشته باشد که از Snapshot ها به عنوان یک میانبر استفاده نماید.
+در طی مثال های قبل دیدید که متدهای Apply و Change به منظور همین Persistance مورد استفاده قرار گرفتند.
+</p>
 
 ### 🔹 ساخت یک Repository بر پایه Event Sourcing
 
+<p style="text-align:justify;">
+حال بیایید یک ریپازیتوری نمونه برای Aggregate مثال قبلی که PayAsYouGoAccount نام داشت ببینی. البته توجه داشته باشید در این مثال موضوع Snapshot ها در نظر گرفته نشده است.
+</p>
+
+```csharp
+public class PayAsYouGoAccountRepository : IPayAsYouGoAccountRepository
+{
+	 private readonly IEventStore _eventStore;
+	 public PayAsYouGoAccountRepository(IEventStore eventStore)
+	 {
+		_eventStore = eventStore;
+	 }
+	 public void Add(PayAsYouGoAccount payAsYouGoAccount)
+	 {
+		 var streamName = StreamNameFor(payAsYouGoAccount.Id);
+		 _eventStore.CreateNewStream(streamName, payAsYouGoAccount.Changes);
+	 }
+	 public void Save(PayAsYouGoAccount payAsYouGoAccount)
+	 {
+		 var streamName = StreamNameFor(payAsYouGoAccount.Id);
+		 _eventStore.AppendEventsToStream(streamName, payAsYouGoAccount.Changes);
+	 }
+	 public PayAsYouGoAccount FindBy(Guid id)
+	 {
+		 var streamName = StreamNameFor(id);
+		 var fromEventNumber = 0;
+		 var toEventNumber = int.MaxValue ;
+		 var stream = _eventStore.GetStream(
+		 streamName, fromEventNumber, toEventNumber
+		 );
+		 var payAsYouGoAccount = new PayAsYouGoAccount();
+		 foreach(var @event in stream)
+		 {
+			payAsYouGoAccount.Apply(@event);
+		 }
+		 return payAsYouGoAccount;
+	 }
+	 private string StreamNameFor(Guid id)
+	 {
+		 // stream per-aggregate: {AggregateType}-{AggregateId}
+		 return string.Format("{0}-{1}", typeof(PayAsYouGoAccount).Name, id);
+	 }
+}
+
+```
+<p style="text-align:justify;">
+در مثال بالا شما سه عملیات اصلی که بایستی پشتیبانی شوند را مشاهده می کنید: ساختن رشته یا همان استریم ها، اضافه کردن رویدادها به یک استریم و لود کردن استریم ها.
+ساخت یک استریم شامل ایجاد یک نام برای آن استریم و اضافه کدن رویدادهای اولیه به ان می باشد.
+در متد Save لیست رویدادهای Commmit نشده به یک استریم اضافه می شود.
+و متد آخر یک intance از PayAsYouGoAccount را لود می نماید.
+در لود کردن یک Aggregate بایستی مشخص کنید که رویدادها را از کجا تا کجا میخواهید.
+سپس رویدادهایی که بدست آورده اید را با متد Apply داخل Aggregate بر روی آن اعمال میکنید.
+این قسمت تنها جایی است که متد Apply داخل یک Aggregate از بیرون صدا زده می شود و این همان جایی است قبل تر در رابطه با public بودن این متد به آن اشاره کردیم.
+</p>
+
+<p style="text-align:justify;">
+نکته قابل توجه دیگر نام استریم ها می باشد که به ازای هر Aggregate یکتا می باشد. و این موضوع باعث میشود به ازای هر Aggregate یک استریم جدا داشته باشیم که در نتیجه آن پرفومنس بهتری خواهیم داشت.
+</p>
+
 ### 🔹 افزودن Persistance و Reload کردن Snapshot ها
+
+<p style="text-align:justify;">
+Snapshot ها یک راهکار به منظور افزایش پرفورمنس می باشند که از لود شدن کل تاریخچه یک استریم جلوگیری می نمایند.
+Snapshot ها معمولاً توسط جاب های پس زمینه ای ایجاد میشوند.
+مثال زیر یک جاب برای همین منظور را با استفاده از یک Event Store بر پایه RevenDB نشان میدهد :
+</p>
+
+```csharp
+public class PasAsYouGoAccountSnapshotJob
+{
+	 private IDocumentStore _documentStore;
+	 public PasAsYouGoAccountSnapshotJob(IDocumentStore documentStore)
+	 {
+		this._documentStore = documentStore;
+	 }
+	 public void Run()
+	 {
+		 while(true)
+		 {
+			 foreach (var id in GetIds())
+			 {
+				 using (var session = _documentStore.OpenSession())
+				 {
+					 var repository = new PayAsYouGoAccountRepository(
+					 new EventStore(session)
+					 );
+					 var account = repository.FindBy(Guid.Parse(id));
+					 var snapshot = account.GetPayAsYouGoAccountSnapshot();
+					 repository.SaveSnapshot(snapshot, account);
+				 }
+			 }
+			 // create a new snapshot for each aggregate every 12 hours
+			 Thread.Sleep(TimeSpan.FromHours(12));
+		 }
+	 }
+	 private IEnumerable<string> GetIds()
+	 {
+		 using (var session = _documentStore.OpenSession())
+		 {
+			 return session.Query<EventStream>()
+			 .Select(x => x.Id)
+			 .ToList();
+		 }
+	 }
+}
+```
+<p style="text-align:justify;">
+در این جاب هر 12 ساعت یکبار برای تمامی aggreagte ها یک Snapshot ایجاد و ذخیره می شود.
+در ورژن های پروداکشن ممکن است بخواهید متفاوت تر عمل کنید.
+احتمالاً بخواهید که لاگ ها سیستمی جهت ردیابی عملکرد این جاب اضافه نمایید.
+یا اینکه یکباره کل Aggregate ها را برایشان Snapshot نسازید و تکه تکه این کار را انجام دهید.
+و حتی ممکن است بخواهید بعد از اینکه تعداد رویدادهای مشخصی بعد از آخرین Snapshot رخ داد یک Snapshot جدید بسازید.
+حال که Snapshot ها را می سازیم بیایید ریپازیتوری مثال گذشته را بهینه تر کنیم :
+</p>
+
+```csharp
+public PayAsYouGoAccount FindBy(Guid id)
+{
+	 var streamName = StreamNameFor(id);
+	 var fromEventNumber = 0;
+	 var toEventNumber = int.MaxValue ;
+	 var snapshot = _eventStore.GetLatestSnapshot<PayAsYouGoAccountSnapshot>(
+	 streamName
+	 );
+	 if (snapshot != null)
+	 {
+		fromEventNumber = snapshot.Version + 1; // load only events after snapshot
+	 }
+	 var stream = _eventStore.GetStream(streamName, fromEventNumber, toEventNumber);
+	 PayAsYouGoAccount payAsYouGoAccount = null;
+	 if (snapshot != null)
+	 {
+		payAsYouGoAccount = new PayAsYouGoAccount(snapshot);
+	 }
+	 else
+	 {
+		payAsYouGoAccount = new PayAsYouGoAccount();
+	 }
+	 foreach(var @event in stream)
+	 {
+		payAsYouGoAccount.Apply(@event);
+	 }
+	 return payAsYouGoAccount;
+}
+```
+<p style="text-align:justify;">
+در اینجا میبینید که ابتدا تلاش می شود که آخرین Snapshot از Event Store گرفته شود.
+اگر این snapshot وجود داشت Aggregate ابتدا از روی آن ساخته می شود و رویدادهایی که بعد از ورژن آخرین Snapshot رخ داده اند restore می شوند و Apply می شوند.
+در صورتی که Snapshot ای وجود نداشت کارها به روال سابق انجام می شود.
+</p>
 
 ## 🔸 مدیریت Concurrency
 
