@@ -372,4 +372,111 @@ public PayAsYouGoAccount FindBy(Guid id)
 
 ## 🔸 مدیریت Concurrency
 
+<p style="text-align:justify;">
+گاهی اوقات شما میخواهید که عملیات اضافه کردن یک رویداد به یک استریم انجام نشود. این موضوع معمولا زمانی به وجود می‌آید که چندین کاربر یعی دارند وضعیت یک Aggregate را بصورت همزمان آپدیت نمایند.
+در این حالت ممکن است شما بخواهید در حالتی که Aggregate پیش از آنکه شما تغییر خود را اعمال کنید توسط کاربر دیگری بروز شده و نسخه به روز آن در دستتان نیست، از اعمال تغییرات جلوگیری کنید.
+به این تکنیک Optimistic Concurrency Control یا به اختصار OCC می گویند.
+در اینجا جا دارد که درباره موضوع جستجو و مطالعه فرمایید.
+</p>
+
+<p style="text-align:justify;">
+در یک اپلیکیشن بر پایه مکانیزم Event sourcing شما میتوانید با اضافه کردن دو مورد از تکنیک OCC برای حل مشکل همزمانی استفاده نمایید.
+در ابتدا به Aggregate یک فیلد دیگر اضافه میکنیم که به هنگام لود شدن آن را با مقدار ورژن اولیه پر میکنیم.
+سپس به هنگام ذخیره سازی تغییرات چک میکنیم که آیا آن ورژنی که ما در ایندا دریافت کردیم و میخواهیم تغییرش دهیم همان آخرین ورژن دیتای ذخیره شده می باشد یا نه.
+دو تکه کد زیر این موضوع را نشان می دهند:
+</p>
+
+```csharp
+public class PayAsYouGoAccount : EventSourcedAggregate
+{
+	 ...
+	 // once set, does not change
+	 public int InitialVersion { get; private set; }
+	 public PayAsYouGoAccount(PayAsYouGoAccountSnapshot snapshot)
+	 {
+		 Version = snapshot.Version;
+		 InitialVersion = snapshot.Version;
+		 _credit = new Money(snapshot.Credit);
+	 }
+	 ...
+}
+```
+
+```csharp
+public class PayAsYouGoAccountRepository : IPayAsYouGoAccountRepository
+{
+	 ...
+	 public void Save(PayAsYouGoAccount payAsYouGoAccount)
+	 {
+		 var streamName = StreamNameFor(payAsYouGoAccount.Id);
+		 var expectedVersion = GetExpectedVersion(payAsYouGoAccount.InitialVersion);
+		 _eventStore.AppendEventsToStream(streamName, payAsYouGoAccount.Changes,
+		 expectedVersion);
+	 }
+	 private int? GetExpectedVersion(int expectedVersion)
+	 {
+		 if (expectedVersion == 0)
+		 {
+			 // first time the aggregate is stored, there is no expected version
+			 return null;
+		 }
+		 else
+		 {
+			return expectedVersion;
+		 }
+	 }
+	 ...
+}
+```
+<p style="text-align:justify;">
+در دو مثال بالا در PayAsYouGoAccount پراپرتری InitialVersion نماینده ورژن آخرین رویدادی می باشد که قبل از لود شدن Aggregate ذخیره شده بود. 
+مقدار این پراپرتی به متد APpendEventsToStream پاس داده می شود و در پیاده سازی Event Store چک میشود که آیا این مقدار همچنان آخرین ورژن ذخیره شده می باشد یا خیر.
+در ادامه نحوه پیاده سازی این فیچر را خواهید دید.
+</p>
+
 ## 🔸 اجرای تست
+
+<p style="text-align:justify;">
+نوشتن Unit test برای Aggregate ها به معنای این می باشد که چک کنیم آیا رویداد مورد نظرمان اتفاق افتاده اند یا خیر. اینکار با چک کردن تغییرات Uncomitted متعلق به آن Aggregate صورت می گیرد.
+مثال زیر یک نمونه تست برای متد PayAsYouGoAccount.TopUp() می باشد:
+</p>
+
+```csharp
+[TestClass]
+public class PayAsYouGoAccount_Tests
+{
+	 static PayAsYouGoAccount _account;
+	 static Money _fiveDollars = new Money(5);
+	 static PayAsYouGoInclusiveMinutesOffer _free90MinsWith10DollarTopUp =
+	 new PayAsYouGoInclusiveMinutesOffer(
+	 new Money(10), new Minutes(90)
+	 );
+	 
+	 [ClassInitialize] // runs first
+	 public static void When_applying_a_top_up_that_does_not_qualify_for_inclusive
+	_minutes(TestContext ctx)
+	 {
+		 _account = new PayAsYouGoAccount(Guid.NewGuid(), new Money(0));
+		 // remove the AccountCreated event that is not relevant to this test
+		 _account.Changes.Clear();
+		 _account.AddInclusiveMinutesOffer(_free90MinsWith10DollarTopUp);
+		 // $5 top up does not meet $10 threshold for free minutes
+		 _account.TopUp(_fiveDollars, new SystemClock());
+	 }
+	 [TestMethod]
+	 public void The_account_will_be_credited_with_the_top_up_amount_but_no_free
+	_minutes()
+	 {
+		 var lastEvent = _account.Changes.SingleOrDefault() as CreditAdded;
+		 Assert.IsNotNull(lastEvent);
+		 Assert.AreEqual(_fiveDollars, lastEvent.Credit);
+		 Assert.AreEqual(5, _account.GetPayAsYouGoAccountSnapshot().Credit);
+	 }
+}
+```
+
+<p style="text-align:justify;">
+بعد از اینکه به PayAsYouGoAccount، AddInclusiveMinutesOffer را اضافه کردیم
+اگر مشتری بیشتر از میزان تعیین شده Topup انجام دهد میزان دقایق اضافه تری نیز دریافت خواهد کرد
+در این تست بررسی میشود که اگر شرایط این آفر مورد تایید نبود بعد از انجام Topup بایستی رویداد CreditAdded را داشته باشیم و حساب مشتری تنها به مقداری که خریداری شده شارژ میشود.
+</p>
