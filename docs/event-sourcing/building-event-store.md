@@ -407,9 +407,280 @@ public class TopUpCredit
 </p>
 
 ## 🔸 یک Event Store بر پایه SQl Server
+
+<p style="text-align:justify;">
+SQL Server یک گزینه رایج دیگر برای استفاده به عنوان زیرساخت ذخیره سازی در یک Event Store می باشد. پروژه های اوپن سورس زیادی وجود دارد که راهنما و رفرنس پیاده سازی Event Store بر پایه SQL Server می باشند.
+پروژه های Ncqrs و NEventStore از معروف ترین این پروژه ها هستند. در مثال های بعدی ما از Ncqrs به عنوان یک کیس استادی استفاده خواهیم کرد.
+</p>
+
 ### 🔹 انتخاب یک Schema
+
+<p style="text-align:justify;">
+زمانی که تصمیم میگیرید از Sql برای ذخیره سازی رویدادها و استریم ها استفاده نمایید مهم ترین موضوع Schema یا همان ساختار جداول می باشد.
+کسانی که قبلاً با Sql یک Event Store توسعه داده اند توصیه میکنند که با ذخیره سازی دیتاهای پیچیده و متغیل بصورت XML یا Json دیزاین ساختار جداول را مینیمال نگه داریم.
+ساختار پیشنهادی ما یک ساختار مستقل از دامین و عمومی به شکل زیر می باشد:
+</p>
+
+```sql
+-- Table Events:
+
+ Id [uniqueidentifier] NOT NULL,
+ TimeStamp [datetime] NOT NULL,
+ Name [varchar](max) NOT NULL,
+ Version [varchar](max) NOT NULL,
+ EventSourceId [uniqueidentifier] NOT NULL,
+ Sequence [bigint],
+ Data [nvarchar](max) NOT NULL
+ 
+-- Table EventSources:
+
+ Id [uniqueidentifier] NOT NULL,
+ Type [nvarchar](255) NOT NULL,
+ Version [int] NOT NULL
+ 
+--- Table Snapshots:
+
+ EventSourceId [uniqueidentifier] NOT NULL,
+ Version [bigint] NULL,
+ TimeStamp [datetime] NOT NULL,
+ Type [varchar](255) NOT NULL,
+ Data [varbinary](max) NOT NULL
+```
+<p style="text-align:justify;">
+یک تفاوت عمده این طراحی با Event Store بر پایه RavenDB استفاده از uniqueidentifier به عنوان شناسه می باشد. در اپلیکیشن خودتان شما میتوانید البته این موضوع را به دلخواه خود تغییر دهید.
+</p>
+
+
 ### 🔹 ساخت یک استریم
+
+<p style="text-align:justify;">
+بیشتر پیاده سازی Ncqrs evet store متاثر از schema می باشد. به عنوان مثال ساخت یک استریم تنها به سادگی اضافه کردن یک رکورد به جدول EventSources می باشد.
+توجه کنید که در Ncqrs عبارت event source همان معادل مفهوم event stream می باشد.
+</p>
+
+```csharp
+private static void AddEventSource(Guid eventSourceId, Type eventSourceType,
+ long initialVersion, SqlTransaction transaction)
+{
+		using (var command =
+	 new SqlCommand(Queries.InsertNewProviderQuery,
+	 transaction.Connection))
+		{
+			command.Transaction = transaction;
+			command.Parameters.AddWithValue("Id", eventSourceId);
+			command.Parameters.AddWithValue("Type", eventSourceType.ToString());
+			command.Parameters.AddWithValue("Version", initialVersion);
+			command.ExecuteNonQuery();
+		}
+}
+
+internal static class Queries
+{
+	 ...
+		public const String InsertNewProviderQuery =
+	 "INSERT INTO [EventSources](Id, Type, Version) VALUES (@Id, @Type, @Version)";
+	 ...
+}
+```
+
 ### 🔹 ذخیره سازی رویدادها
+
+<p style="text-align:justify;">
+schema همچنین بر روی ذخیره کردن رویدادها نیز تاثیر میگذارد.
+مثال زیر نشان میدهد که چطور هر رویداد با رفرنس به استریم مربوطه به صورت یک رکورد در جدول Events ذخیره می شود.
+</p>
+
+```csharp
+private void SaveEvents(IEnumerable<UncommittedEvent> uncommittedEvents,
+ SqlTransaction transaction)
+{
+    foreach (var sourcedEvent in uncommittedEvents)
+    {
+        SaveEvent(sourcedEvent, transaction);
+    }
+}
+
+private void SaveEvent(UncommittedEvent uncommittedEvent, SqlTransaction transaction)
+{
+    string eventName;
+    var document = _formatter.Serialize(uncommittedEvent.Payload, out eventName);
+    var storedEvent = new StoredEvent<JObject>(
+	 uncommittedEvent.EventIdentifier,
+	 uncommittedEvent.EventTimeStamp, eventName,
+	 uncommittedEvent.EventVersion,
+	 uncommittedEvent.EventSourceId, 
+	 uncommittedEvent.EventSequence, document
+	 );
+	 
+    var raw = _translator.TranslateToRaw(storedEvent);
+    using (var command = new SqlCommand(
+	Queries.InsertNewEventQuery, transaction.Connection))
+    {
+        command.Transaction = transaction;
+        command.Parameters.AddWithValue("EventId", raw.EventIdentifier);
+        command.Parameters.AddWithValue("TimeStamp", raw.EventTimeStamp);
+        command.Parameters.AddWithValue("EventSourceId", raw.EventSourceId);
+        command.Parameters.AddWithValue("Name", raw.EventName);
+        command.Parameters.AddWithValue("Version", raw.EventVersion.ToString());
+        command.Parameters.AddWithValue("Sequence", raw.EventSequence);
+        command.Parameters.AddWithValue("Data", raw.Data);
+        command.ExecuteNonQuery();
+    }
+}
+
+internal static class Queries
+{
+	 ...
+			public const String InsertNewEventQuery = "INSERT INTO [Events]([Id],
+	[EventSourceId], [Name], [Version], [Data], [Sequence], [TimeStamp]) VALUES
+	(@EventId, @EventSourceId, @Name, @Version, @Data, @Sequence, @TimeStamp)";
+	 ...
+}
+```
+
 ### 🔹 لود کردن رویدادها از یک استریم
+
+<p style="text-align:justify;">
+مثال زیر یک سمپل از Ncqrs می باشد که رویدادها را از یک استریم میخواند. اینکار مشابه IEventStore.GetStream() می باشد که پیشتر در این فصل نشان داده شده است. همه رویدادهایی که به یک استریم خاص به واسه شناسه ان رفرنس دارند اگر در محدوده ورژن های پاس داده شده به این متد باشند برگردانده میشوند.
+</p>
+
+```csharp
+public CommittedEventStream ReadFrom(Guid id, long minVersion, long maxVersion)
+{
+    var events = new List<CommittedEvent>();
+    using (var connection = new SqlConnection(_connectionString))
+    {
+        using (var command = new SqlCommand(Queries.SelectAllEventsQuery, connection))
+        {
+            command.Parameters.AddWithValue("EventSourceId", id);
+            command.Parameters.AddWithValue("EventSourceMinVersion", minVersion);
+            command.Parameters.AddWithValue("EventSourceMaxVersion", maxVersion);
+            connection.Open();
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var evnt = ReadEventFromDbReader(reader);
+                    events.Add(evnt);
+                }
+            }
+        }
+    }
+    return new CommittedEventStream(id, events);
+}
+
+internal static class Queries
+{
+	 ...
+	 public const String SelectAllEventsQuery =
+	 "SELECT [Id], [EventSourceId],[Name], [Version], [TimeStamp], [Data], Sequence] 
+	 FROM [Events] WHERE [EventSourceId] = @EventSourceId
+	 AND [Sequence] >= @EventSourceMinVersion AND
+	 [Sequence] <= @EventSourceMaxVersion
+	 ORDER BY [Sequence]";
+	 ...
+}
+```
+
+<p style="text-align:justify;">
+شما همچنین میتوانید پیاده سازی کامل ReadEventFromDbReader() را در ریپازیتوری گیت هاب Ncqrs ببینید.
+</p>
+
 ### 🔹 Snapshot ها
+
+<p style="text-align:justify;">
+یک جدول به خصوص به منظور نگهداری Snapshot ها در Ncqrs در نظر گرفته شده است. در این جدول یک رفرنس به استریم مربوطه از طریق نگهداری شناسه آن برقرار شده است.
+در مثال زیر ذخیره سازی و لود شدن Snapshot ها را مشاهده میکنید:
+</p>
+
+```csharp
+public void SaveSnapshot(Snapshot snapshot)
+{
+    using (var connection = new SqlConnection(_connectionString))
+    {
+        connection.Open();
+        using (SqlTransaction transaction = connection.BeginTransaction())
+        {
+            try
+            {
+                using (var dataStream = new MemoryStream())
+                {
+                    var formatter = new BinaryFormatter();
+                    formatter.Serialize(dataStream, snapshot.Payload);
+                    byte[] data = dataStream.ToArray();
+                    using (var command = new SqlCommand(Queries.InsertSnapshot, transaction.Connection))
+                    {
+                        command.Transaction = transaction;
+                        command.Parameters.AddWithValue("EventSourceId", snapshot.EventSourceId);
+                        command.Parameters.AddWithValue("Version", snapshot.Version);
+                        command.Parameters.AddWithValue("Type", snapshot.GetType().AssemblyQualifiedName);
+                        command.Parameters.AddWithValue("Data", data);
+                        command.ExecuteNonQuery();
+                    }
+                }
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+    }
+}
+
+internal static class Queries
+{
+	 ...
+		public const String InsertSnapshot =
+		"DELETE FROM [Snapshots] WHERE [EventSourceId]=@EventSourceId;
+		INSERT INTO [Snapshots]([EventSourceId], [Timestamp], [Version], [Type], [Data]) 
+		VALUES (@EventSourceId, GETDATE(), @Version, @Type, @Data)";
+	 ...
+}
+```
+
+```csharp
+public Snapshot GetSnapshot(Guid eventSourceId, long maxVersion)
+{
+    using (var connection = new SqlConnection(_connectionString))
+    {
+        connection.Open();
+        using (var command = new SqlCommand(Queries.SelectLatestSnapshot, connection))
+        {
+            command.Parameters.AddWithValue("@EventSourceId", eventSourceId);
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    var snapshotData = (byte[])reader["Data"];
+                    using (var buffer = new MemoryStream(snapshotData))
+                    {
+                        var formatter = new BinaryFormatter();
+                        var payload = formatter.Deserialize(buffer);
+                        var theSnapshot = new Snapshot(eventSourceId, (long)reader["Version"], payload);
+                        return theSnapshot.Version > maxVersion ? null : theSnapshot;
+                    }
+                }
+                return null;
+            }
+        }
+    }
+}
+
+internal static class Queries
+{
+	 ...
+		public const String SelectLatestSnapshot =
+		"SELECT TOP 1 * FROM [Snapshots] WHERE [EventSourceId]=@EventSourceId
+		ORDER BY Version DESC";
+	 ...
+}
+```
+
 ## 🔸 آیا ساخت یک Event Store سفارشی معقول است؟
+
+<p style="text-align:justify;">
+در طی روزهای اولیه event sourcing هیچ ابزار تجاری وجود نداشت و توسعه دهندگان مجبور بودند که قابلیت های event sourcing را با استفاده از تکنولوژی‌های موجود مانند SQL یا دیتابیس های داکیومنت محور توسعه دهند. این بدین معناست که این کار صد در صد قابل دستیابی می باشد. اما اگر شما به سمت سناریوهای پیچیده تری مانند projection ها، کوئری‌های زمانی پیچیده و افزایش مقیاس پذیری بروید ممکن است به جای خلق ارزش برای کسب و کار بیشتر به توسعه امکانات زیرساخت مشغول خواهید شد.
+به همین دلیل است که شاید شما بخواهید از ابزارهای تکنولوژیک آماده برای این منظور به مانند Event Store توسعه داده شده توسط Greg Young استفاده نمایید. این ابزار به نام Event Store نیز شناخته می شود.
+</p>
