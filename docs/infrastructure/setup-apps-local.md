@@ -76,7 +76,7 @@ docker login dreg.bidev.ir -u developer -p 123
 ### 🔹 5. ایجاد شبکه keepapp
 
 حال بایستی شبکه ای با نام keepapp ایجاد کنیم زیرا که تمامی سرویس‌های ما بر روی این شبکه با یکدیگر در ارتباط خواهند بود. برای ایجاد این شبکه دستور زیر را در terminal اجرا نمایید:
-```
+```sh
 docker network create keepapp
 ```
 
@@ -97,7 +97,8 @@ docker network create keepapp
 
 برای اجرا این دستور ابتدا به مسیر root پروژه docker-deploy بروید و در آنجا terminal را باز کرده و دستور زیر را اجرا نمایید :
 
-```
+```sh
+docker-compose -f .\docker-compose.database.yml up -d
 docker-compose -f .\docker-compose.infrastructure.yml up -d
 ```
 
@@ -110,7 +111,7 @@ docker-compose -f .\docker-compose.infrastructure.yml up -d
 چنانچه سیستم عامل شما لینوکس می باشد لازم است که دسترسی هایی را به یوزر mssql خود بدهید تا بتواند به volume های mssql دسترسی پیدا کند.
 برای اینکار ابتدا لازم است که شناسه کاربر mssql را ابتدا بدست آوردید. برای اینکار میتوانید از دستور زیر استفاده نمایید :
 
-```
+```sh
 docker run -it dreg.bidev.ir/mssql/server:2019-latest id mssql
 # the result would be like:
 # uid=10001(mssql) gid=0(root) groups=0(root)
@@ -118,7 +119,7 @@ docker run -it dreg.bidev.ir/mssql/server:2019-latest id mssql
 
 سپس به این شناسه یوزر دسترسی volume های سرویس mssql را می دهیم. به این صورت :
 
-```
+```sh
 sudo chown 10001 ./volumes/sqldata
 sudo chmod 777 -R ./volumes/sqldata
 ```
@@ -127,14 +128,16 @@ sudo chmod 777 -R ./volumes/sqldata
 
 حال که mssql به صورت کامل راه اندازی شده است لازم است اسکریپت ساخت دیتابیس های سرویس های کامان را بر روی sql اجرا نماییم. این اسکریپت ها در پوشه migrations سورس کد گذاشته شده اند. برای اجرای این اسکریپت‌ها دستورات زیر را در powershell اجرا نمایید : 
 
+```sh
+docker exec sqldb bash -c '/migrations/_migrate.sh Common'
+docker exec sqldb bash -c '/migrations/_migrate.sh Logging'
+docker exec sqldb bash -c '/migrations/_migrate.sh Payment'
+docker exec sqldb bash -c '/migrations/_migrate.sh Credits'
+docker exec sqldb bash -c '/migrations/_migrate.sh Restora'
 ```
-docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -i /migrations/Create-CommonDb.sql'
-
-docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -i /migrations/Create-LoggingDb.sql'
-
-docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -i /migrations/Create-PaymentDb.sql'
-
-docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -i /migrations/Create-CreditDb.sql'
+اگر فایلهای اسگریپت مایگریشن دیگری نیز داشتید که نیاز بود به یک دیتابیس اعمال شود ابتدا فایلها را به پوشه migrations اضافه کرده و سپس از دستور زیر برای اعمال مایگریشن به دیتابیس استفاده کنید:
+```sh
+docker exec sqldb sh -c '/opt/mssql-tools/bin/sqlcmd -S . -U sa -P $SA_PASSWORD -d <database-name> -i /migrations/<migrationfile.sql>'
 ```
 
 ### 🔹 11. تنظیمات اولیه و آپلود فایلهای مورد نیاز روی minio
@@ -179,14 +182,14 @@ SecretKey: NRBkCpY26TAsHwXr4JfxNs6cGBaUj6D4
 
 ### 🔹 12. راه اندازی Gateway
 اکنون Gateway را بایستی راه اندازی کنیم تا بتوانیم از آدرس های مورد نظرمان به سرویس ها دسترسی داشته باشیم. برای اینکار دستور زیر را اجرا میکنیم:
-```
+```sh
 docker-compose -f .\docker-compose.gateway.yml up -d
 ```
 
 ### 🔹 13. راه اندازی Common
 حال میخواهیم سرویس‌های common را راه اندازی کنیم. برای راه اندازی این سرویس ها به root پروژه docker deploy رفته و در آنجا terminal را باز میکنیم. و دستور زیر را در آن اجرا میکنیم :
 
-```
+```sh
 docker-compose -f .\docker-compose.common.yml up -d
 ```
 
@@ -234,7 +237,7 @@ https://admin.local.dev/api/swagger/index.html
 ### 🔹 15. راه اندازی Parsa
 
 برای راه اندازی اپلیکیشن‌های پرسا از دستور زیر استفاده نمایید :
-```
+```sh
 docker-compose -f .\docker-compose.parsa.yml up -d
 ```
 
