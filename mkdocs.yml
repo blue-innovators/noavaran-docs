@@ -25,6 +25,10 @@ nav:
       - payment/payment-commands-parsa.md
       - payment/payment-commands-restora.md
       - payment/payment-status.md
+    - انواع لاگ های سیستم:
+      - log/elastic-engin.md
+      - log/user-action-log.md
+      - log/system-log.md
   - سیستم رستورا:
     - restora/restora-commands.md
   - R & D:
