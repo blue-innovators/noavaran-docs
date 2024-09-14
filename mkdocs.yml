@@ -24,6 +24,7 @@ nav:
       - payment/payment-commands.md
       - payment/payment-commands-parsa.md
       - payment/payment-commands-restora.md
+      - payment/payment-status.md
   - سیستم رستورا:
     - restora/restora-commands.md
   - R & D:
