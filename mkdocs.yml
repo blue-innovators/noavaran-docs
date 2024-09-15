@@ -24,6 +24,7 @@ nav:
       - payment/payment-commands.md
       - payment/payment-commands-parsa.md
       - payment/payment-commands-restora.md
+      - payment/payment-status.md
     - انواع لاگ های سیستم:
       - log/elastic-engin.md
       - log/user-action-log.md
