@@ -49,8 +49,10 @@ nav:
     - matomo/matomo-index.md
     - matomo/dashboard.md
     - matomo/goals.md
-    - matomo/sections.md
+    - matomo/segments.md
     - matomo/events.md
+    - matomo/dev-setup.md
+    - matomo/dev-api.md
 
     
 theme:
