@@ -45,6 +45,14 @@ nav:
       - event-sourcing/costs.md
       - event-sourcing/references.md
       - event-sourcing/summary.md
+  - matomo:
+    - matomo/matomo-index.md
+    - matomo/dashboard.md
+    - matomo/goals.md
+    - matomo/segments.md
+    - matomo/events.md
+    - matomo/dev-setup.md
+    - matomo/dev-api.md
 
     
 theme:
