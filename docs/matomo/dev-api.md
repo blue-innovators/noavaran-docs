@@ -43,3 +43,21 @@ index.php?module=API&method=MyApiPlugin.getExampleReport&idSite=1&period=week&da
 for json response, you should and &format=json to end of api request
 
 
+## API Call
+
+1.Create a Token:
+
+Create a token here: Settings > Personal > Security > Generate New Token
+
+2.Type Of Request:
+
+API Request should be POST and body should contains token_auth and a generated token
+
+3.Body Of Request:
+
+Just in case anyone else, like me, ends up here from searching for solutions to this problem:
+
+Set your Content-Type to application/x-www-form-urlencoded. This is default for curl but not when using fetch() in the browser for example, which is why all the curl examples work but your code doesn’t
+
+
+
